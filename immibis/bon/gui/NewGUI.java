@@ -1,5 +1,58 @@
 package immibis.bon.gui;
 
+import java.awt.Dialog.ModalityType;
+import java.awt.EventQueue;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import java.net.URL;
+
+import java.nio.charset.StandardCharsets;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.prefs.Preferences;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import immibis.bon.ClassCollection;
 import immibis.bon.IProgressListener;
 import immibis.bon.NameSet;
@@ -14,64 +67,6 @@ import immibis.bon.mcp.MappingFactory;
 import immibis.bon.mcp.MappingLoader_MCP;
 import immibis.bon.mcp.MinecraftNameSet;
 import immibis.bon.mcp.SrgFile;
-
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-
-import java.awt.GridBagLayout;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JLabel;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.UIManager.LookAndFeelInfo;
-
-import java.awt.Dialog.ModalityType;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.Toolkit;
-
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.JTabbedPane;
-import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.prefs.Preferences;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import javax.swing.JCheckBox;
 
 public class NewGUI {
 	
@@ -93,14 +88,14 @@ public class NewGUI {
 	private JTextField txtMCPDir;
 	private JButton btnBrowseMCPDir;
 	private JButton btnBrowseInputFile;
-	private JComboBox mcpSideSelector;
+	private JComboBox<Side> mcpSideSelector;
 	private JTabbedPane tabbedPane;
 	private JPanel panel;
 	private JPanel panel_1;
 	private JButton btnGoForgeDownload;
 	private JPanel panel_2;
 	private JLabel label_1;
-	private JComboBox downloadForgeVersionSelector;
+	private JComboBox<String> downloadForgeVersionSelector;
 	private JButton btnGetVersionList;
 	private JLabel lblNoteThisWill;
 	private JLabel lblForgeUserdevjar;
@@ -110,7 +105,7 @@ public class NewGUI {
 	private JButton btnGoMCP;
 	private JCheckBox chckbxUseSrgNames;
 	private JLabel lblOperation;
-	private JComboBox operationSelector;
+	private JComboBox<Operation> operationSelector;
 	private JLabel lblThisIsNot;
 	private JLabel lblForgegradleCacheFolder;
 	private JTextField txtFGCache;
@@ -121,6 +116,7 @@ public class NewGUI {
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					for(LookAndFeelInfo lafi : UIManager.getInstalledLookAndFeels()) {
@@ -197,6 +193,7 @@ public class NewGUI {
 		
 		btnBrowseInputFile = new JButton("Browse");
 		btnBrowseInputFile.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
 				
@@ -257,6 +254,7 @@ public class NewGUI {
 		
 		btnBrowseOutputFile = new JButton("Browse");
 		btnBrowseOutputFile.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
 				
@@ -290,8 +288,8 @@ public class NewGUI {
 		gbc_lblOperation.gridy = 2;
 		frmBeardedOctoNemesis.getContentPane().add(lblOperation, gbc_lblOperation);
 		
-		operationSelector = new JComboBox();
-		operationSelector.setModel(new DefaultComboBoxModel(Operation.values()));
+		operationSelector = new JComboBox<>();
+		operationSelector.setModel(new DefaultComboBoxModel<>(Operation.values()));
 		GridBagConstraints gbc_operationSelector = new GridBagConstraints();
 		gbc_operationSelector.insets = new Insets(0, 0, 5, 5);
 		gbc_operationSelector.fill = GridBagConstraints.HORIZONTAL;
@@ -337,6 +335,7 @@ public class NewGUI {
 		
 		btnBrowseMCPDir = new JButton("Browse");
 		btnBrowseMCPDir.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
 				
@@ -368,14 +367,14 @@ public class NewGUI {
 		gbc_lblSide.gridy = 1;
 		panel.add(lblSide, gbc_lblSide);
 		
-		mcpSideSelector = new JComboBox();
+		mcpSideSelector = new JComboBox<>();
 		GridBagConstraints gbc_mcpSideSelector = new GridBagConstraints();
 		gbc_mcpSideSelector.fill = GridBagConstraints.HORIZONTAL;
 		gbc_mcpSideSelector.insets = new Insets(0, 0, 5, 5);
 		gbc_mcpSideSelector.gridx = 1;
 		gbc_mcpSideSelector.gridy = 1;
 		panel.add(mcpSideSelector, gbc_mcpSideSelector);
-		mcpSideSelector.setModel(new DefaultComboBoxModel(Side.values()));
+		mcpSideSelector.setModel(new DefaultComboBoxModel<>(Side.values()));
 		
 		chckbxUseSrgNames = new JCheckBox("Use SRG names");
 		GridBagConstraints gbc_chckbxUseSrgNames = new GridBagConstraints();
@@ -387,6 +386,7 @@ public class NewGUI {
 		
 		btnGoMCP = new JButton("Go");
 		btnGoMCP.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				goWithMCP();
 			}
@@ -427,6 +427,7 @@ public class NewGUI {
 		
 		btnBrowseForgeJar = new JButton("Browse");
 		btnBrowseForgeJar.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
 				
@@ -452,6 +453,7 @@ public class NewGUI {
 		
 		btnGoForge = new JButton("Go");
 		btnGoForge.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				goWithLocalForge();
 			}
@@ -477,6 +479,7 @@ public class NewGUI {
 		
 		btnBrowseFGCache = new JButton("Browse");
 		btnBrowseFGCache.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
 				
@@ -539,7 +542,7 @@ public class NewGUI {
 		gbc_label_1.gridy = 0;
 		panel_2.add(label_1, gbc_label_1);
 		
-		downloadForgeVersionSelector = new JComboBox();
+		downloadForgeVersionSelector = new JComboBox<String>();
 		GridBagConstraints gbc_downloadForgeVersionSelector = new GridBagConstraints();
 		gbc_downloadForgeVersionSelector.fill = GridBagConstraints.HORIZONTAL;
 		gbc_downloadForgeVersionSelector.insets = new Insets(0, 0, 5, 5);
@@ -549,6 +552,7 @@ public class NewGUI {
 		
 		btnGetVersionList = new JButton("Get version list");
 		btnGetVersionList.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				getForgeVersionList();
 			}
@@ -575,6 +579,7 @@ public class NewGUI {
 		gbc_btnGoForgeDownload.gridy = 2;
 		panel_2.add(btnGoForgeDownload, gbc_btnGoForgeDownload);
 		btnGoForgeDownload.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				goWithDownloadedForge();
 			}
@@ -845,8 +850,10 @@ public class NewGUI {
 			DownloadDialog.download(frmBeardedOctoNemesis, new URL("http://files.minecraftforge.net/maven/net/minecraftforge/forge/json"), baos);
 			
 			Object jsonroot = JsonReader.readJSON(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+			@SuppressWarnings("unchecked")
+			Map<String, Map<String,Map<String, Map<?, ?>>>> builds = (Map<String, Map<String, Map<String, Map<?, ?>>>>) ((Map<String, Map<String, ?>>)jsonroot).get("number");
 			
-			List<String> buildNumbers = new ArrayList<>(((Map<String,Map<String,?>>)jsonroot).get("number").keySet());
+			List<String> buildNumbers = new ArrayList<>(builds.keySet());
 			Collections.sort(buildNumbers, new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
@@ -857,7 +864,7 @@ public class NewGUI {
 			DefaultComboBoxModel<String> model = ((DefaultComboBoxModel<String>)downloadForgeVersionSelector.getModel());
 			model.removeAllElements();
 			for(String buildNum : buildNumbers) {
-				Map build = ((Map<String,Map<String,Map>>)jsonroot).get("number").get(buildNum);
+				Map<String,Map<String, Map<?, ?>>> build = builds.get(buildNum);
 				model.addElement(build.get("mcversion")+"-"+build.get("version"));
 			}
 			

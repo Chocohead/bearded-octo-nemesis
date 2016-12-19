@@ -520,8 +520,8 @@ public class InsnList {
         }
     }
 
-    // this class is not generified because it will create bridges
-    private final class InsnListIterator implements ListIterator {
+    @SuppressWarnings("rawtypes") // this class is not generified because it will create bridges
+	private final class InsnListIterator implements ListIterator {
 
         AbstractInsnNode next;
 
@@ -539,11 +539,13 @@ public class InsnList {
             }
         }
 
-        public boolean hasNext() {
+        @Override
+		public boolean hasNext() {
             return next != null;
         }
 
-        public Object next() {
+        @Override
+		public Object next() {
             if (next == null) {
                 throw new NoSuchElementException();
             }
@@ -554,7 +556,8 @@ public class InsnList {
             return result;
         }
 
-        public void remove() {
+        @Override
+		public void remove() {
             if (remove != null) {
                 if (remove == next) {
                     next = next.next;
@@ -568,11 +571,13 @@ public class InsnList {
             }
         }
 
-        public boolean hasPrevious() {
+        @Override
+		public boolean hasPrevious() {
             return prev != null;
         }
 
-        public Object previous() {
+        @Override
+		public Object previous() {
             AbstractInsnNode result = prev;
             next = result;
             prev = result.prev;
@@ -580,7 +585,8 @@ public class InsnList {
             return result;
         }
 
-        public int nextIndex() {
+        @Override
+		public int nextIndex() {
             if (next == null) {
                 return size();
             }
@@ -590,7 +596,8 @@ public class InsnList {
             return next.index;
         }
 
-        public int previousIndex() {
+        @Override
+		public int previousIndex() {
             if (prev == null) {
                 return -1;
             }
@@ -600,13 +607,15 @@ public class InsnList {
             return prev.index;
         }
 
-        public void add(Object o) {
+        @Override
+		public void add(Object o) {
             InsnList.this.insertBefore(next, (AbstractInsnNode) o);
             prev = (AbstractInsnNode) o;
             remove = null;
         }
 
-        public void set(Object o) {
+        @Override
+		public void set(Object o) {
             InsnList.this.set(next.prev, (AbstractInsnNode) o);
             prev = (AbstractInsnNode) o;
         }
