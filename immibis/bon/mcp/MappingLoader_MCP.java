@@ -80,8 +80,18 @@ public class MappingLoader_MCP {
 			
 		default: throw new AssertionError("side is "+side);
 		}
-		
-		load(side, mcVer, new ExcFile(excFile), new SrgFile(srgFile, false), CsvFile.read(new File(mcpDir, "conf/fields.csv"), sideNumbers), CsvFile.read(new File(mcpDir, "conf/methods.csv"), sideNumbers), progress);
+
+		SrgFile srg_File = new SrgFile(srgFile, false);
+		Map<String, String> fieldNames;
+		Map<String, String> methodNames;
+		if (srg_File.oldStyle) {
+			fieldNames = srg_File.SRGtoMCPfields;
+			methodNames = srg_File.SRGtoMCPmethods;
+		} else {
+			fieldNames = CsvFile.read(new File(mcpDir, "conf/fields.csv"), sideNumbers);
+			methodNames = CsvFile.read(new File(mcpDir, "conf/methods.csv"), sideNumbers);
+		}
+		load(side, mcVer, new ExcFile(excFile), srg_File, fieldNames, methodNames, progress);
 	}
 	
 	public void load(Side side, String mcVer, ExcFile excFile, SrgFile srgFile, Map<String, String> fieldNames, Map<String, String> methodNames, IProgressListener progress) throws CantLoadMCPMappingException {
@@ -96,8 +106,10 @@ public class MappingLoader_MCP {
 		forwardCSV = new Mapping(srgNS, mcpNS);
 		reverseCSV = new Mapping(mcpNS, srgNS);
 		
-		if(progress != null) progress.setMax(3);
-		if(progress != null) progress.set(0);
+		if(progress != null) {
+			progress.setMax(3);
+			progress.set(0);
+		}
 		excFileData = excFile;
 		if(progress != null) progress.set(1);
 		loadSRGMapping(srgFile);

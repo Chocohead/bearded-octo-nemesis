@@ -28,6 +28,8 @@ public class ExcFile {
 	public static ExcFile read(Reader r) throws IOException {
 		//example line:
 		//net/minecraft/src/NetClientHandler.<init>(Lnet/minecraft/client/Minecraft;Ljava/lang/String;I)V=java/net/UnknownHostException,java/io/IOException|p_i42_1_,p_i42_2_,p_i42_3_
+		//example old line:
+		//net/minecraft/src/NetClientHandler.<init>(Lnet/minecraft/client/Minecraft;Ljava/lang/String;I)V=java/net/UnknownHostException,java/io/IOException
 		
 		ExcFile rv = new ExcFile();
 		
@@ -48,6 +50,7 @@ public class ExcFile {
 			int i = line.indexOf('.');
 			if(i < 0)
 				continue;
+
 			String clazz = line.substring(0, i);
 			line = line.substring(i+1);
 			
@@ -60,7 +63,12 @@ public class ExcFile {
 			line = line.substring(i+1);
 			
 			i = line.indexOf('|');
-			String excs = line.substring(0, i);
+			String excs;
+			if (i < 0) {//The old format didn't have pipes
+				excs = line;
+				i = line.length() - 1;
+			} else
+				excs = line.substring(0, i);
 			line = line.substring(i+1);
 			
 			if(excs.contains("CL_"))

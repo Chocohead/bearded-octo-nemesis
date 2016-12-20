@@ -17,6 +17,9 @@ public class SrgFile {
 	public Map<String, String> classes = new HashMap<String, String>(); // name -> name
 	public Map<String, String> fields = new HashMap<String, String>(); // owner/name -> name
 	public Map<String, String> methods = new HashMap<String, String>(); // owner/namedesc -> name
+	public boolean oldStyle = false;
+	public Map<String, String> SRGtoMCPfields = new HashMap<String, String>(); // name -> name
+	public Map<String, String> SRGtoMCPmethods = new HashMap<String, String>(); // name -> name
 	
 	public static String getLastComponent(String s) {
 		String[] parts = s.split("/");
@@ -64,13 +67,138 @@ public class SrgFile {
 		return rv;
 	}
 
+	private static String stripQuotes(String s) {
+		return s.substring(1, s.length() - 1);
+	}
+
+	public static SrgFile readOld(File mcpConfDir, int side, boolean reverse) throws IOException {
+		SrgFile rv = new SrgFile();
+
+		try (Scanner in = new Scanner(new BufferedReader(new FileReader(new File(mcpConfDir, "classes.csv"))))) {			
+			//Lifted from CsvFile
+			Map<String, String> data = new HashMap<>();
+
+			in.useDelimiter(",");
+			while(in.hasNextLine()) {
+				String name = stripQuotes(in.next());
+				String notch = stripQuotes(in.next());
+				in.next(); //Skip supername
+				String pack = stripQuotes(in.next());
+				String sideNumber = in.nextLine().substring(2, 3); //Remove the last comma and surrounding quotes
+
+				try {
+					if (Integer.parseInt(sideNumber) == side) {
+						if (reverse)
+							data.put(pack + '/' + name, notch);
+						else
+							data.put(notch, pack + '/' + name);
+					}
+				} catch(NumberFormatException e) {
+					//This fails on the header line
+				}
+			}
+			rv.classes = data;
+		}
+
+		try (Scanner in = new Scanner(new BufferedReader(new FileReader(new File(mcpConfDir, "methods.csv"))))) {
+			Map<String, String> NOTCHtoSRG = new HashMap<>();
+			Map<String, String> SRGtoMCP = new HashMap<>();
+
+			in.useDelimiter(",");
+			while(in.hasNextLine()) {
+				String SRGname = stripQuotes(in.next());
+				String MCPname = stripQuotes(in.next());
+				String NOTCHname = stripQuotes(in.next());
+				String sig = stripQuotes(in.next());
+				String obfSig = stripQuotes(in.next());
+				String clazz = stripQuotes(in.next());
+				String obfClazz = stripQuotes(in.next());
+				String pack = stripQuotes(in.next());
+				String sideNumber = in.nextLine().substring(2, 3); //Remove the last comma and surrounding quotes
+
+				try {
+					if (Integer.parseInt(sideNumber) == side) {
+						if (reverse)
+							NOTCHtoSRG.put(pack + '/' + clazz + '/' + SRGname + sig, NOTCHname);
+						else
+							NOTCHtoSRG.put(obfClazz + '/' + NOTCHname + obfSig, SRGname);
+						SRGtoMCP.put(SRGname, MCPname);
+					}
+				} catch(NumberFormatException e) {
+					//This fails on the header line
+				}
+			}
+			rv.methods = NOTCHtoSRG;
+			rv.SRGtoMCPmethods = SRGtoMCP;
+		}
+
+		try (Scanner in = new Scanner(new BufferedReader(new FileReader(new File(mcpConfDir, "fields.csv"))))) {
+			Map<String, String> NOTCHtoSRG = new HashMap<>();
+			Map<String, String> SRGtoMCP = new HashMap<>();
+
+			in.useDelimiter(",");
+			while(in.hasNextLine()) {
+				String SRGname = stripQuotes(in.next());
+				String MCPname = stripQuotes(in.next());
+				String NOTCHname = stripQuotes(in.next());
+				in.next(); //Skip sig
+				in.next(); //Skip notchsig
+				String clazz = stripQuotes(in.next());
+				String obfClazz = stripQuotes(in.next());
+				String pack = stripQuotes(in.next());
+				String sideNumber = in.nextLine().substring(2, 3); //Remove the last comma and surrounding quotes
+
+				try {
+					if (Integer.parseInt(sideNumber) == side) {
+						if (reverse)
+							NOTCHtoSRG.put(pack + '/' + clazz + '/' + SRGname, NOTCHname);
+						else
+							NOTCHtoSRG.put(obfClazz + '/' + NOTCHname, SRGname);
+						SRGtoMCP.put(SRGname, MCPname);
+					}
+				} catch(NumberFormatException e) {
+					//This fails on the header line
+				}
+			}
+			rv.fields = NOTCHtoSRG;
+			rv.SRGtoMCPfields = SRGtoMCP;
+		}
+
+		return rv;
+	}
+
 	@Deprecated
 	public SrgFile(File f, boolean reverse) throws IOException {
-		try (FileReader fr = new FileReader(f)) {
-			SrgFile sf = read(new BufferedReader(fr), reverse);
+		if (f.exists()) {//Older formats had a classes.csv instead of a srg file
+			try (FileReader fr = new FileReader(f)) {
+				SrgFile sf = read(new BufferedReader(fr), reverse);
+				classes = sf.classes;
+				fields = sf.fields;
+				methods = sf.methods;
+			}
+		} else {
+			int side;
+			switch (f.getName()) {
+			case "client.srg":
+				side = 0;
+				break;
+				
+			case "server.srg":
+				side = 1;
+				break;
+				
+			default:
+				throw new AssertionError("Unexpected srg file name: "+f.getName());
+			}
+
+			SrgFile sf = readOld(f.getParentFile(), side, reverse);
+
 			classes = sf.classes;
 			fields = sf.fields;
 			methods = sf.methods;
+			SRGtoMCPfields = sf.SRGtoMCPfields;
+			SRGtoMCPmethods = sf.SRGtoMCPmethods;
+			oldStyle = true;
 		}
 	}
 	
